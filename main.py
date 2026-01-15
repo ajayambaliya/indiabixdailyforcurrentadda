@@ -12,7 +12,7 @@ import re
 import random
 from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor
-from notifications import NotificationSender
+from notifications import NotificationSender, TelegramSender
 
 load_dotenv()
 
@@ -27,8 +27,9 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 auth = Auth.Token(GH_TOKEN)
 gh = Github(auth=auth)
 
-# Initialize Notification Sender
+# Initialize Notification Senders
 notifier = NotificationSender()
+telegram_notifier = TelegramSender()
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
@@ -295,8 +296,9 @@ def main():
                 if success:
                     # Send notification if it's a new quiz
                     if is_new:
-                        print(f"Sending notification for new quiz: {quiz_data['slug']}")
+                        print(f"Sending notifications for new quiz: {quiz_data['slug']}")
                         notifier.send_quiz_notification(quiz_data["date_str"], quiz_data["slug"])
+                        telegram_notifier.send_quiz_notification(quiz_data["date_str"], quiz_data["slug"])
                         
                     # Update cache and Gist immediately after each successful URL
                     processed_urls.append(url)

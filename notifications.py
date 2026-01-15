@@ -85,3 +85,57 @@ class NotificationSender:
         except Exception as e:
             logger.error(f"❌ Network Error: {str(e)}")
             return False
+
+class TelegramSender:
+    """Handles sending notifications to Telegram via Bot API."""
+    
+    def __init__(self, bot_token: Optional[str] = None, chat_id: Optional[str] = None, base_url: Optional[str] = None):
+        self.bot_token = (bot_token or os.getenv("TELEGRAM_BOT_TOKEN", "")).strip()
+        self.chat_id = (chat_id or os.getenv("TELEGRAM_CHAT_ID", "")).strip()
+        self.base_url = (base_url or os.getenv("DOMAIN_URL", "https://currentadda.vercel.app")).strip().rstrip("/")
+        self.channel_link = os.getenv("TELEGRAM_CHANNEL_LINK", "https://t.me/currentadda").strip()
+        
+        if not self.bot_token or not self.chat_id:
+            logger.warning("Telegram Bot Token or Chat ID missing. Telegram notifications will be skipped.")
+            self.enabled = False
+        else:
+            self.enabled = True
+
+    def send_quiz_notification(self, date_str: str, quiz_slug: str) -> bool:
+        if not self.enabled:
+            return False
+
+        quiz_url = f"{self.base_url}/quiz/{quiz_slug}"
+        
+        # Beautifully formatted message in Gujarati
+        message = (
+            f"🎯 *IndiaBix નવી ડેઈલી કરંટ અફેસ ક્વિઝ લાઈવ!*\n\n"
+            f"📅 *તારીખ:* {date_str}\n\n"
+            f"📝 દરેક પ્રશ્નના જવાબ સાથે સમજૂતી પણ આપવામાં આવેલ છે.\n\n"
+            f"🔗 *ક્વિઝ રમવા માટે નીચેની લિંક પર ક્લિક કરો:*\n"
+            f"{quiz_url}\n\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"📢 વધુ અપડેટ્સ માટે અમારી ચેલનલ જોઈન કરો:\n"
+            f"👉 {self.channel_link}\n\n"
+            f"#CurrentAffairs #IndiaBix #DailyQuiz #GSSSB #GPSC #GujaratGK #CurrentAdda"
+        )
+
+        url = f"https://api.telegram.org/bot{self.bot_token}/sendMessage"
+        payload = {
+            "chat_id": self.chat_id,
+            "text": message,
+            "parse_mode": "Markdown",
+            "disable_web_page_preview": False
+        }
+
+        try:
+            response = requests.post(url, json=payload)
+            if response.status_code == 200:
+                logger.info("✅ Telegram: Notification sent successfully!")
+                return True
+            else:
+                logger.error(f"❌ Telegram API Error: {response.text}")
+                return False
+        except Exception as e:
+            logger.error(f"❌ Telegram Network Error: {str(e)}")
+            return False
