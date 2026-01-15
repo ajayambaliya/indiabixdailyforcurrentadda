@@ -19,12 +19,12 @@ load_dotenv()
 # Configuration
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GH_TOKEN = os.getenv("GH_TOKEN")
 GIST_ID = os.getenv("GIST_ID")
 
 # Initialize clients
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-auth = Auth.Token(GITHUB_TOKEN)
+auth = Auth.Token(GH_TOKEN)
 gh = Github(auth=auth)
 
 # Initialize Notification Sender
