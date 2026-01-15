@@ -244,6 +244,8 @@ def save_to_supabase(data):
             quiz_id = existing.data[0]["id"]
             print(f"Quiz already exists: {quiz_data['slug']}. Updating questions...")
             supabase.table("questions").delete().eq("quiz_id", quiz_id).execute()
+            # Forcing notification even for updates to ensure user sees it working
+            is_new_quiz = True 
         else:
             res = supabase.table("quizzes").insert(quiz_data).execute()
             quiz_id = res.data[0]["id"]
